@@ -19,6 +19,8 @@
 <body ng-controller="mainController">
 
 <div class="container">
+    <h1>Elevators</h1>
+    <p>Please, send requests to the elevators:</p>
     <form ng-submit="send(requests)">
     <textarea cols="50" rows="4" class="form-control" ng-model="requests">
     </textarea>
