@@ -1,9 +1,13 @@
 <?php
 
-$elevators = 5;
+$config = include('config.php');
 
-use Elevator\Model\System;
+$controller = new \Elevator\Controller\Controller($config);
+$controller->indexAction();
 
-$system = new System($elevators);
-
-$request = new \Elevator\Model\Request(5, 7);
+function __autoload($class)
+{
+    $parts = explode('\\', $class);
+    array_shift($parts);
+    require join('/', $parts) . '.php';
+}

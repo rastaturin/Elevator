@@ -2,9 +2,10 @@
 
 namespace Elevator\Model;
 
-
 class System
 {
+    protected $step = 0;
+
     /**
      * @var Elevator[]
      */
@@ -17,6 +18,46 @@ class System
     {
         for ($i = 0; $i < $elevatorsCount; $i++) {
             $this->elevators[] = new Elevator($i);
+        }
+    }
+
+    /**
+     * @param $data
+     * @return array
+     */
+    public function processRequests($data)
+    {
+        $steps = [$this->getState()];
+
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException("Incorrect requests!");
+        }
+
+        foreach ($data as $req) {
+            $request = new Request($req->from, $req->to);
+            $this->step([$request]);
+            $steps[] = $this->getState();
+        }
+
+        while (!$this->finished()) {
+            $this->step();
+            $steps[] = $this->getState();
+        }
+
+        return $steps;
+    }
+
+    /**
+     * @param array $requests
+     */
+    public function step($requests = [])
+    {
+        $this->step++;
+        foreach ($requests as $request) {
+            $this->sendRequest($request);
+        }
+        foreach ($this->elevators as $elevator) {
+            $elevator->step();
         }
     }
 
@@ -36,14 +77,30 @@ class System
     }
 
     /**
+     * All the elevators finished requests.
+     * @return bool
+     */
+    public function finished()
+    {
+        foreach ($this->elevators as $elevator) {
+            if (!$elevator->isStanding()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * @param Request $request
      * @return Elevator
      */
     protected function pickAnElevator(Request $request)
     {
         return $this->getElevatorAtFloor($request->getFloor())
-            ?: $this->getElevatorGoingToFloor($request->getFloor())
-            ?: $this->getStandingElevator();
+            ?: (
+                $this->getElevatorGoingToFloor($request->getFloor())
+                    ?: $this->getStandingElevator()
+            );
     }
 
     /**
@@ -81,8 +138,15 @@ class System
         }
     }
 
-    public function getElevators()
+    /**
+     * @return array
+     */
+    public function getState()
     {
-        return $this->elevators;
+        $result = [];
+        foreach ($this->elevators as $elevator) {
+            $result[] = $elevator->getState();
+        }
+        return $result;
     }
 }

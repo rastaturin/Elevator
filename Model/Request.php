@@ -16,7 +16,7 @@ class Request
     {
         $this->floor = $floor;
         $this->target = $target;
-        $this->direction = $this->getDirection();
+        $this->direction = $this->calcDirection();
     }
 
     public function getFloor()
@@ -29,16 +29,25 @@ class Request
         return $this->target;
     }
 
-    protected function getDirection()
+    public function getDirection()
+    {
+        return $this->direction;
+    }
+
+    protected function calcDirection()
     {
         if ($this->floor > $this->target) {
             return self::DIRECTION_DOWN;
         } else if ($this->floor < $this->target) {
             return self::DIRECTION_UP;
         } else {
-            throw new IncorrectRequestException();
+            throw new IncorrectRequestException("Incorrect request $this->floor -> $this->target");
         }
     }
 
+    public function __toString()
+    {
+        return sprintf("%s -> %s", $this->floor, $this->target);
+    }
 
 }
